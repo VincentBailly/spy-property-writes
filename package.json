@@ -1,0 +1,23 @@
+{
+  "name": "spy-property-writes",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "tap"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/VincentBailly/spy-property-writes.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/VincentBailly/spy-property-writes/issues"
+  },
+  "homepage": "https://github.com/VincentBailly/spy-property-writes#readme",
+  "devDependencies": {
+    "tap": "^15.1.6"
+  }
+}
