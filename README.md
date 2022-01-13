@@ -1,7 +1,9 @@
 # spy-property-writes
 
 JavaScript offers various ways for an object to store another object.
-This library give a uniform way to trap the various ways in which properties are passed to an object. This library is not concerned by how the values are stored in the object but only how they are passed to it.
+This library gives a uniform way to spy the various ways in which properties are passed to an object.
+This library also gives the power to change the values of these read operations.
+This library is not concerned by how the values are stored in the object but only how they are passed to it.
 
 ## Usage
 
@@ -13,9 +15,9 @@ const { spyPropertyWrites } = require('spy-property-writes')
 
 const o = {}
 
-const spyCallback = function(source, query, value, setResult) {
+const spyCallback = function(source, query, value) {
   console.log({ query, value })
-  return setResult(value)
+  return value
 }
 
 const handler = spyPropertyWrites(spyCallback)
@@ -33,21 +35,17 @@ const { spyPropertyWrites } = require('spy-property-writes')
 
 const o = function() {}
 
-const spyCallback = function(source, query, value, setResult) {
+const spyCallback = function(source, query, value) {
   console.log({ query, value })
-  return setResult(value)
+  return value
 }
 
 const handler = spyPropertyWrites(spyCallback)
 const spy = new Proxy(o, handler)
 
 spy.bind({ foo: 'bar' })(42, 43)
-//  console.log() => { query: 'thisArgument(apply())', value: { foo: 'bar' } } 
-//  console.log() => { query: 'argument1(apply())', value: 42 } 
-//  console.log() => { query: 'argument2(apply())', value: 41 } 
+//  console.log() => { query: 'arguments(apply())', value: { thisArg: { foo: 'bar' }, args: [42, 43] } } 
 
-spy(42)
-//  console.log() => { query: 'argument1(apply())', value: 42 } 
 ```
 
 ### Spy constructor arguments
@@ -58,17 +56,17 @@ const { spyPropertyWrites } = require('spy-property-writes')
 
 const o = function() {}
 
-const spyCallback = function(source, query, value, setResult) {
+const spyCallback = function(source, query, value) {
   console.log({ query, value })
-  return setResult(value)
+  return value
 }
 
 const handler = spyPropertyWrites(spyCallback)
 const spy = new Proxy(o, handler)
 
 new spy(42, 43)
-//  console.log() => { query: 'argument1(constructor)', value: 42 } 
-//  console.log() => { query: 'argument2(constructor)', value: 41 } 
+//  console.log() => { query: 'arguments(constructor)', value: [42, 43] } 
+
 ```
 
 ### DefineProperty
@@ -79,9 +77,9 @@ const { spyPropertyWrites } = require('spy-property-writes')
 
 const o = function() {}
 
-const spyCallback = function(source, query, value, setResult) {
+const spyCallback = function(source, query, value) {
   console.log({ query, value })
-  return setResult(value)
+  return value
 }
 
 const handler = spyPropertyWrites(spyCallback)
@@ -104,9 +102,9 @@ const { spyPropertyWrites } = require('spy-property-writes')
 
 const o = { set a() {} }
 
-const spyCallback = function(source, query, value, setResult) {
+const spyCallback = function(source, query, value) {
   console.log({ query, value })
-  return setResult(value)
+  return value
 }
 
 const handler = spyPropertyWrites(spyCallback)
@@ -126,9 +124,9 @@ const { spyPropertyWrites } = require('spy-property-writes')
 
 const o = function() {}
 
-const spyCallback = function(source, query, value, setResult) {
+const spyCallback = function(source, query, value) {
   console.log({ query, value })
-  return setResult(value)
+  return value
 }
 
 const handler = spyPropertyWrites(spyCallback)
@@ -153,9 +151,9 @@ const o = {}
 // 1 - every property is doubled
 const handler1 = { set: (target, prop, value) => target[prop] = value * 2 }
 
-const spyCallback = function(source, query, value, setResult) {
+const spyCallback = function(source, query, value) {
   console.log({ query, value })
-  return setResult(value)
+  return value
 }
 
 // 2 - spy on property reads
