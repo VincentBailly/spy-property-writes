@@ -28,7 +28,7 @@ tap.test('setters', t => {
   t.end()
 })
 
-tap.test('setters: mutate ar', t => {
+tap.test('function args', t => {
   const o = function(a, b) { return `${this.foo}:${a}:${b}` }
 
   const log = []
@@ -49,5 +49,28 @@ tap.test('setters: mutate ar', t => {
   t.equal(log[0].value.args[1], 43)
 
   t.equal(r, 'baz:3:undefined')
+  t.end()
+})
+
+tap.test('constructor args', t => {
+  const o = function(a, b) { return { foo: `${a}:${b}` } }
+
+  const log = []
+  const spyCallback = function(source, query, value) {
+    log.push({ query, value })
+    return [3]
+  }
+
+  const handler = spyPropertyWrites(spyCallback)
+  const spy = new Proxy(o, handler)
+
+  const r = new spy(42, 43)
+  t.equal(log.length, 1)
+  t.equal(log[0].query, 'arguments(constructor())')
+  t.equal(log[0].value.length, 2)
+  t.equal(log[0].value[0], 42)
+  t.equal(log[0].value[1], 43)
+
+  t.equal(r.foo, '3:undefined')
   t.end()
 })
