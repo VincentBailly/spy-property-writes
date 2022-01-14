@@ -76,3 +76,31 @@ tap.test('constructor args', t => {
   t.equal(r.foo, '3:undefined')
   t.end()
 })
+
+tap.test('define property', t => {
+  const o = {}
+
+  const log = []
+  const spyCallback = function(source, query, value, write) {
+    log.push({ query, value })
+    write(42)
+  }
+
+  const handler = spyPropertyWrites(spyCallback)
+  const spy = new Proxy(o, handler)
+
+  Object.defineProperty(spy, 'a', { configurable: true, value: 21 })
+  t.equal(log.length, 1)
+  t.equal(log[0].query, 'defineProperty("a").value')
+  t.equal(log[0].value, 21)
+  t.equal(o.a, 42)
+
+  Object.defineProperty(spy, 'b', { configurable: true, get() { return 21 } })
+  t.equal(o.b, 42)
+  t.equal(log.length, 2)
+  t.equal(log[1].query, 'defineProperty("b").get()')
+  t.equal(log[1].value, 21)
+
+  t.end()
+})
+

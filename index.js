@@ -15,6 +15,26 @@ exports.spyPropertyWrites = function (callback) {
       const newArgs = args.map(_ => undefined)
       args.forEach((a, i) => callback(target, `argument${i+1}(constructor)`, a, v => { newArgs[i] = v }))
       return Reflect.construct(target, newArgs)
+    },
+    defineProperty: (target, property, descriptor) => {
+      const newDescriptor = {...descriptor}
+      if (Object.keys(descriptor).includes('value')) {
+        newDescriptor.value = undefined
+        callback(target, `defineProperty("${property.toString()}").value`, descriptor.value, v => { 
+          newDescriptor.value = v
+          Reflect.defineProperty(target, property, newDescriptor)
+        })
+      } else if (Object.keys(descriptor).includes('get')) {
+        newDescriptor.get = () => {
+          let result = undefined
+          callback(target, `defineProperty("${property.toString()}").get()`, descriptor.get(), v => { result = v })
+          return result
+        }
+        Reflect.defineProperty(target, property, newDescriptor)
+      } else {
+        Reflect.defineProperty(target, property, newDescriptor)
+      }
+      return true
     }
   }
 }
