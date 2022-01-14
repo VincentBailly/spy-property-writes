@@ -5,9 +5,9 @@ tap.test('setters', t => {
   const o = {}
 
   const log = []
-  const spyCallback = function(source, query, value) {
+  const spyCallback = function(source, query, value, write) {
     log.push({ query, value })
-    return 41
+    write(41)
   }
 
   const handler = spyPropertyWrites(spyCallback)
@@ -32,21 +32,23 @@ tap.test('function args', t => {
   const o = function(a, b) { return `${this.foo}:${a}:${b}` }
 
   const log = []
-  const spyCallback = function(source, query, value) {
+  const spyCallback = function(source, query, value, write) {
     log.push({ query, value })
-    return { thisArg: { foo: 'baz' }, args: [3] }
+    if (query === 'thisArgument(apply)') write({ foo: 'baz' })
+    else if (query === 'argument1(apply)') write(3)
   }
 
   const handler = spyPropertyWrites(spyCallback)
   const spy = new Proxy(o, handler)
 
   const r = spy.bind({ foo: 'bar' })(42, 43)
-  t.equal(log.length, 1)
-  t.equal(log[0].query, 'arguments(apply())')
-  t.equal(log[0].value.thisArg.foo, 'bar')
-  t.equal(log[0].value.args.length, 2)
-  t.equal(log[0].value.args[0], 42)
-  t.equal(log[0].value.args[1], 43)
+  t.equal(log.length, 3)
+  t.equal(log[0].query, 'thisArgument(apply)')
+  t.equal(log[0].value.foo, 'bar')
+  t.equal(log[1].query, 'argument1(apply)')
+  t.equal(log[1].value, 42)
+  t.equal(log[2].query, 'argument2(apply)')
+  t.equal(log[2].value, 43)
 
   t.equal(r, 'baz:3:undefined')
   t.end()
@@ -56,20 +58,20 @@ tap.test('constructor args', t => {
   const o = function(a, b) { return { foo: `${a}:${b}` } }
 
   const log = []
-  const spyCallback = function(source, query, value) {
+  const spyCallback = function(source, query, value, write) {
     log.push({ query, value })
-    return [3]
+    if (query === 'argument1(constructor)') write(3)
   }
 
   const handler = spyPropertyWrites(spyCallback)
   const spy = new Proxy(o, handler)
 
   const r = new spy(42, 43)
-  t.equal(log.length, 1)
-  t.equal(log[0].query, 'arguments(constructor())')
-  t.equal(log[0].value.length, 2)
-  t.equal(log[0].value[0], 42)
-  t.equal(log[0].value[1], 43)
+  t.equal(log.length, 2)
+  t.equal(log[0].query, 'argument1(constructor)')
+  t.equal(log[0].value, 42)
+  t.equal(log[1].query, 'argument2(constructor)')
+  t.equal(log[1].value, 43)
 
   t.equal(r.foo, '3:undefined')
   t.end()

@@ -1,14 +1,19 @@
 exports.spyPropertyWrites = function (callback) {
   return {
     set: (target, prop, value) => {
-      return Reflect.set(target, prop, callback(target, `set("${prop.toString()}")`, value))
+      callback(target, `set("${prop.toString()}")`, value, v => Reflect.set(target, prop, v))
     },
     apply: (target, thisArg, args) => {
-      const { thisArg: newThisArg, args: newArgs } = callback(target, 'arguments(apply())', { thisArg, args })
+      let newThisArg = undefined
+      callback(target, 'thisArgument(apply)', thisArg, n => { newThisArg = n })
+
+      const newArgs = args.map(_ => undefined)
+      args.forEach((a, i) => callback(target, `argument${i+1}(apply)`, a, v => { newArgs[i] = v }))
       return Reflect.apply(target, newThisArg, newArgs)
     },
     construct: (target, args) => {
-      const newArgs = callback(target, 'arguments(constructor())', args )
+      const newArgs = args.map(_ => undefined)
+      args.forEach((a, i) => callback(target, `argument${i+1}(constructor)`, a, v => { newArgs[i] = v }))
       return Reflect.construct(target, newArgs)
     }
   }
