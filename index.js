@@ -28,6 +28,10 @@ exports.spyPropertyWrites = function (callback) {
         }
       }
     },
+    setPrototypeOf: (target, prototype) => {
+      callback(target, 'setPrototypeOf()', prototype, v => Reflect.setPrototypeOf(target, v))
+      return true
+    },
     defineProperty: (target, property, descriptor) => {
       const newDescriptor = {...descriptor}
       if (Object.keys(descriptor).includes('value')) {

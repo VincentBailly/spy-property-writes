@@ -129,3 +129,28 @@ tap.test('getOwnPropertyDescriptor().set()', t => {
 
   t.end()
 })
+
+tap.test('setPrototypeOf', t => {
+
+  let val = undefined
+  const o = {}
+
+  const log = []
+  const spyCallback = function(source, query, value, write) {
+    log.push({ query, value })
+    write({ foo: 21 })
+  }
+
+  const handler = spyPropertyWrites(spyCallback)
+  const spy = new Proxy(o, handler)
+
+  Object.setPrototypeOf(spy, { foo: 42 })
+
+  t.equal(log.length, 1)
+  t.equal(log[0].query, 'setPrototypeOf()')
+  t.equal(log[0].value.foo, 42)
+  t.equal(o.foo, 21)
+
+  t.end()
+})
+//  console.log() => { query: 'setPrototypeOf()', value: { foo: 42 } } 
