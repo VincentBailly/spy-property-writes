@@ -153,4 +153,40 @@ tap.test('setPrototypeOf', t => {
 
   t.end()
 })
-//  console.log() => { query: 'setPrototypeOf()', value: { foo: 42 } } 
+
+tap.test('composition', t => {
+  const o = {}
+  // 1 - every property is doubled
+  const handler1 = { set: (target, prop, value, write) => target[prop] = value * 2 }
+
+  const log = []
+  const spyCallback = function(source, query, value, write) {
+    log.push({ query, value })
+    write(value - 2)
+  }
+
+  // 2 - spy on property reads
+  const handler2 = spyPropertyWrites(spyCallback, handler1)
+
+  // 3 - add un-spyable property
+  const handler3 = {
+    ...handler2,
+    set: function(target, prop, value, write) {
+      if (prop === 'secret') { target[prop] = value }
+      else { return handler2.set(...arguments) }
+    }
+  }
+
+  const spy = new Proxy(o, handler3)
+
+  spy.a = 42
+  t.equal(log.length, 1)
+  t.equal(log[0].query, 'set("a")')
+  t.equal(log[0].value, 42)
+  t.equal(o.a, 80)
+
+  spy.secret = 43
+  t.equal(log.length, 1)
+  t.equal(o.secret, 43)
+  t.end()
+})

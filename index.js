@@ -1,7 +1,13 @@
-exports.spyPropertyWrites = function (callback) {
+exports.spyPropertyWrites = function (callback, handler = {}) {
+  const reflect = (name, ...args) => {
+    if (handler[name]) {
+      return handler[name](...args)
+    }
+    return Reflect[name](...args)
+  }
   return {
     set: (target, prop, value) => {
-      callback(target, `set("${prop.toString()}")`, value, v => Reflect.set(target, prop, v))
+      callback(target, `set("${prop.toString()}")`, value, v => reflect('set', target, prop, v))
     },
     apply: (target, thisArg, args) => {
       let newThisArg = undefined
@@ -9,15 +15,15 @@ exports.spyPropertyWrites = function (callback) {
 
       const newArgs = args.map(_ => undefined)
       args.forEach((a, i) => callback(target, `argument${i+1}(apply)`, a, v => { newArgs[i] = v }))
-      return Reflect.apply(target, newThisArg, newArgs)
+      return reflect('apply', target, newThisArg, newArgs)
     },
     construct: (target, args) => {
       const newArgs = args.map(_ => undefined)
       args.forEach((a, i) => callback(target, `argument${i+1}(constructor)`, a, v => { newArgs[i] = v }))
-      return Reflect.construct(target, newArgs)
+      return reflect('construct', target, newArgs)
     },
     getOwnPropertyDescriptor: (target, prop) => {
-      const desc = Reflect.getOwnPropertyDescriptor(target, prop)
+      const desc = reflect('getOwnPropertyDescriptor', target, prop)
       if (!Object.keys(desc).includes('set')) {
         return desc
       }
@@ -29,7 +35,7 @@ exports.spyPropertyWrites = function (callback) {
       }
     },
     setPrototypeOf: (target, prototype) => {
-      callback(target, 'setPrototypeOf()', prototype, v => Reflect.setPrototypeOf(target, v))
+      callback(target, 'setPrototypeOf()', prototype, v => reflect('setPrototypeOf', target, v))
       return true
     },
     defineProperty: (target, property, descriptor) => {
@@ -38,7 +44,7 @@ exports.spyPropertyWrites = function (callback) {
         newDescriptor.value = undefined
         callback(target, `defineProperty("${property.toString()}").value`, descriptor.value, v => { 
           newDescriptor.value = v
-          Reflect.defineProperty(target, property, newDescriptor)
+          reflect('defineProperty', target, property, newDescriptor)
         })
       } else if (Object.keys(descriptor).includes('get')) {
         newDescriptor.get = () => {
@@ -46,9 +52,9 @@ exports.spyPropertyWrites = function (callback) {
           callback(target, `defineProperty("${property.toString()}").get()`, descriptor.get(), v => { result = v })
           return result
         }
-        Reflect.defineProperty(target, property, newDescriptor)
+        reflect('defineProperty', target, property, newDescriptor)
       } else {
-        Reflect.defineProperty(target, property, newDescriptor)
+        reflect('defineProperty', target, property, newDescriptor)
       }
       return true
     }
