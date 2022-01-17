@@ -1,7 +1,7 @@
 {
   "name": "spy-property-writes",
   "version": "1.0.0",
-  "description": "",
+  "description": "Spy write operations on an object",
   "main": "index.js",
   "scripts": {
     "test": "tap"

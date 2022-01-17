@@ -6,6 +6,7 @@ exports.spyPropertyWrites = function (callback, handler = {}) {
     return Reflect[name](...args)
   }
   return {
+    ...handler,
     set: (target, prop, value) => {
       callback(target, `set("${prop.toString()}")`, value, v => reflect('set', target, prop, v))
     },

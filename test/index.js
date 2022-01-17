@@ -157,7 +157,11 @@ tap.test('setPrototypeOf', t => {
 tap.test('composition', t => {
   const o = {}
   // 1 - every property is doubled
-  const handler1 = { set: (target, prop, value, write) => target[prop] = value * 2 }
+  let getterCalled = false
+  const handler1 = {
+    set: (target, prop, value) => { target[prop] = value * 2 },
+    get: (target, prop) => { getterCalled = true; return target[prop] }
+  }
 
   const log = []
   const spyCallback = function(source, query, value, write) {
@@ -183,7 +187,8 @@ tap.test('composition', t => {
   t.equal(log.length, 1)
   t.equal(log[0].query, 'set("a")')
   t.equal(log[0].value, 42)
-  t.equal(o.a, 80)
+  t.equal(spy.a, 80)
+  t.ok(getterCalled)
 
   spy.secret = 43
   t.equal(log.length, 1)
