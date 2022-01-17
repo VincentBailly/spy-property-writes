@@ -104,3 +104,28 @@ tap.test('define property', t => {
   t.end()
 })
 
+tap.test('getOwnPropertyDescriptor().set()', t => {
+
+  let val = undefined
+  const o = { 
+    set a(v) { val = v },
+  }
+
+  const log = []
+  const spyCallback = function(source, query, value, write) {
+    log.push({ query, value })
+    write(21)
+  }
+
+  const handler = spyPropertyWrites(spyCallback)
+  const spy = new Proxy(o, handler)
+
+  Object.getOwnPropertyDescriptor(spy, 'a').set(42)
+
+  t.equal(log.length, 1)
+  t.equal(log[0].query, 'getOwnPropertyDescriptor("a").set()')
+  t.equal(log[0].value, 42)
+  t.equal(val, 21)
+
+  t.end()
+})
