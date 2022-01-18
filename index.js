@@ -25,7 +25,7 @@ exports.spyPropertyWrites = function (callback, handler = {}) {
     },
     getOwnPropertyDescriptor: (target, prop) => {
       const desc = reflect('getOwnPropertyDescriptor', target, prop)
-      if (!Object.keys(desc).includes('set')) {
+      if (!desc || !Object.keys(desc).includes('set')) {
         return desc
       }
       return {
