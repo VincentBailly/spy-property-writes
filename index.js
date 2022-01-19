@@ -8,7 +8,9 @@ exports.spyPropertyWrites = function (callback, handler = {}) {
   return {
     ...handler,
     set: (target, prop, value) => {
-      callback(target, `set("${prop.toString()}")`, value, v => reflect('set', target, prop, v))
+      let r = true
+      callback(target, `set("${prop.toString()}")`, value, v => { r = reflect('set', target, prop, v) })
+      return r
     },
     apply: (target, thisArg, args) => {
       let newThisArg = undefined
